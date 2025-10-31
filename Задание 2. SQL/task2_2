@@ -1,0 +1,18 @@
+SELECT
+    a.test_grp,
+    SUM(b.money) / COUNT(DISTINCT a.st_id) as ARPU,
+    SUM(CASE WHEN c.cor_sum > 10 THEN b.money ELSE 0 END) / NULLIF(COUNT(DISTINCT CASE WHEN c.cor_sum > 10 THEN a.st_id END), 0) as ARPAU,
+    COUNT(DISTINCT CASE WHEN b.money > 0 THEN a.st_id END) * 1.0 / COUNT(DISTINCT a.st_id) as CR_to_sale,
+    COUNT(DISTINCT CASE WHEN b.money > 0 AND c.cor_sum > 10 THEN a.st_id END) * 1.0 / NULLIF(COUNT(DISTINCT CASE WHEN c.cor_sum > 10 THEN a.st_id END), 0) as CR_activUSER_to_sale,
+    COUNT(DISTINCT CASE WHEN b.subject = 'Math' AND c.math_count >= 2 THEN a.st_id END) * 1.0 / NULLIF(COUNT(DISTINCT CASE WHEN c.math_count >= 2 THEN a.st_id END), 0) as CR_math
+FROM studs as a
+LEFT JOIN final_project_check as b ON a.st_id = b.st_id
+LEFT JOIN (
+    SELECT
+        st_id,
+        COUNT(*) FILTER (WHERE correct) as cor_sum,
+        COUNT(*) FILTER (WHERE subject = 'math' AND correct) as math_count
+    FROM peas
+    GROUP BY st_id
+) as c ON a.st_id = c.st_id
+GROUP BY a.test_grp;
